@@ -1,0 +1,11 @@
+- x_axis = ["a", "b", "c", "d", "e", "f", "g", "h", "i"]
+- y_axis = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+- unless @creator
+  - x_axis.reverse!
+  - y_axis.reverse!
+#chessboard
+  %table
+    - y_axis.each do |i|
+      %tr
+        - x_axis.each do |j|
+          %td{id: "#{j}#{i}"}

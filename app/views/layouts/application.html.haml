@@ -1,0 +1,9 @@
+%head
+  %title Chinese Chess
+  = stylesheet_link_tag 'application', :media => 'all'
+  = javascript_include_tag 'application'
+  %script{:src => 'http://cdn.pubnub.com/pubnub-3.3.1.min.js'}
+  %script{:src => 'http://code.jquery.com/ui/1.9.1/jquery-ui.js'}
+  = csrf_meta_tags
+%body
+  = yield

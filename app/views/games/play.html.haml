@@ -1,0 +1,73 @@
+= render 'chessboard'
+
+= link_to_function "Replay Game", "initPosition()"
+
+%textarea#logs
+
+:javascript
+  var current_player = "#{@creator ? 'player1' : 'player2'}";
+  var online_players = [];
+  var pubnub;
+  $(function() {
+    // INIT PubNub
+    pubnub = PUBNUB.init({
+      publish_key   : 'pub-f0d57425-c034-4c77-9d62-20d5c878cf12',
+      subscribe_key : 'sub-1963406e-3202-11e2-90d2-adff6345a9ac',
+      origin        : 'pubsub.pubnub.com'
+    });
+
+    // LISTEN
+    pubnub.subscribe({
+      channel  : "my_chess_#{@creator ? 'player2' : 'player1'}",
+      callback : function(message) { moveChess(message) },
+      connect : function() {
+        pubnub.publish({
+          channel: "my_chess_#{@game.id}_who_is_online",
+          message: "who is online"
+        })
+      },
+      disconnect : function() {
+        pubnub.publish({
+          channel: "my_chess_#{@game.id}_who_is_offline",
+          message: "#{@creator ? 'Creator' : 'Visitor'}"
+        })
+      }
+    })
+
+    pubnub.subscribe({
+      channel: "my_chess_#{@game.id}",
+      callback: function(message) {
+        if (online_players.indexOf(message) < 0) {
+          online_players.push(message);
+          $("textarea#logs").html('');
+          for(i=0; i< online_players.length; i++) {
+            $("textarea#logs").append(online_players[i] + ' is online');
+          }
+        }
+      }
+    })
+
+    pubnub.subscribe({
+      channel: "my_chess_#{@game.id}_who_is_online",
+      callback: function(message) {
+        pubnub.publish({
+          channel: "my_chess_#{@game.id}",
+          message: "#{@creator ? 'Creator' : 'Visitor'}"
+        })
+      }
+    })
+
+    pubnub.subscribe({
+      channel: "my_chess_#{@game.id}_who_is_offline",
+      callback: function(message) {
+        console.log(message);
+        console.log(online_players);
+        online_players.pop(message);
+        $("textarea#logs").html('');
+        for(i=0; i< online_players.length; i++) {
+          $("textarea#logs").append(online_players[i] + ' is online');
+        }
+      }
+    })
+  })
+
